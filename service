@@ -1,0 +1,85 @@
+import { Injectable } from '@angular/core';
+import { FormControl, FormGroup, Validators} from '@angular/forms';
+import { AngularFireDatabase, AngularFireList} from '@angular/fire/database';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class DeviceService {
+  dotoogle(device: any) {
+    throw new Error("Method not implemented.");
+  }
+
+  constructor(private firebase :AngularFireDatabase) { }
+
+  deviceList :AngularFireList<any>;
+  devices:any[];
+  $key ;
+  form = new FormGroup({
+    $key : new FormControl(null),
+    devicename : new FormControl('',Validators.required),
+    devicecategory : new FormControl('',Validators.required),
+
+    //To add multiple validators like for mobile num use FormControl('',[Validators.required,Validators.minlength(10)])
+    //To add multiple validators like for Email num use FormControl('',Validators.email)
+
+  });
+
+  getDevices(){
+    this.firebase.list('/pt1').valueChanges().subscribe(devices =>{
+      this.devices = devices;
+      console.log(devices)
+  });
+  }
+
+  getDevices1(){
+   this.$key = '-LviXKRRXZc9Oj3Vu5QL'
+   this.deviceList = this.firebase.list('/Devices/')
+   console.log(this.deviceList )
+   return this.deviceList.snapshotChanges();
+  }
+
+  adddevice(device){
+    this.deviceList.push({
+      devicename : device.devicename,
+      devicecategory : device.devicecategory,
+      devicestate : "Off",
+      devicevalue : 0,
+      devicedate : null,
+    });
+  }
+
+  populateForm(device: any) :void{
+    console.log(device.$key)
+
+    this.form.patchValue({$key: device.$key,devicename: device.devicename,devicecategory:device.devicecategory})
+   // this.form.setValue(device);
+   
+  }
+
+
+  toggleDone(device: any): void
+      {
+        console.log("Working")
+        if(device.devicevalue==0)
+        {
+        this.firebase.object('/Devices/' + device.$key)
+        .update({ devicevalue: 1 });
+        }
+        else{
+          this.firebase.object('/Devices/' + device.$key)
+          .update({ devicevalue: 0 });
+        }
+  
+  }
+
+  updateDevice(device : any){
+    console.log("Update here")
+    this.firebase.object('/Devices/' + device.$key)
+    .update({ devicename: device.devicename,devicecategory:device.devicecategory });
+  }
+  deleteDevice(device : any){
+    //this.firestore.doc('policies/' + policyId).delete();
+    console.log(this.firebase.object('/Devices/' + device.$key).remove());
+  }
+}
